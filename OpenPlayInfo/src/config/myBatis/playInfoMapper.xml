@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper 
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.fun.playinfo.mybatis.dao.IPlayInfoDao"> 
+	<!--配置一个resultMap 指定返回的类型 -->  
+     <resultMap id="playInfoVO" type="OpenPlayInfoVO">  
+        <id column="play_id" property="playID" />  
+        <result column="video_id" property="videoID" />  
+        <result column="info_hash" property="hashID" />  
+        <result column="file_name" property="fileName" />  
+        <result column="file_size" property="fileSize" />  
+        <result column="disable" property="disable" />  
+        <result column="update_time" property="updateTime" />  
+        <result column="create_time" property="createTime" />  
+        <association column="definition_id" property="definitionVO" select="getDefinitionByID"/> 
+        <association column="ftype_id" property="vedioTypeVO"  select="getFileTypeByID"/> 
+    </resultMap> 
+    
+	 <!-- 这里的id必须和UserMapper接口中的接口方法名相同，不然运行的时候也要报错 --> 
+    <select id="getDefinitionByID" resultType="DefinitionVO" parameterType="java.lang.String" > 
+        select * from fun_definition_type where definition_id=#{definitionID}
+    </select> 
+    
+     <!-- 这里的id必须和UserMapper接口中的接口方法名相同，不然运行的时候也要报错 --> 
+    <select id="getFileTypeByID" resultType="FileTypeVO" parameterType="java.lang.String" > 
+        select * from fun_file_type where  ftype_id=#{fileTypeID}
+    </select> 
+    
+    <!-- 这里的id必须和UserMapper接口中的接口方法名相同，不然运行的时候也要报错 --> 
+    <select id="getInfoByVideoID" resultMap="playInfoVO" parameterType="java.lang.Integer" > 
+        select * from fun_video_play where  video_id=#{videoID}
+    </select> 
+
+    <select id="getPlayInfoByPageInfo" resultMap="playInfoVO" > 
+        select * from fun_video_play limit #{0},#{1}
+    </select> 
+    
+    <select id="getPlayInfoTotalNum" resultType="java.lang.Integer" > 
+        select count(*) from fun_video_play 
+    </select> 
+    
+    <select id="getPlayInfoByUptime" resultMap="playInfoVO" > 
+        select * from fun_video_play where update_time>=#{0}
+    </select> 
+    
+     <!-- 返回一个list的写法 -->  
+    <select id="getInfoByVideoIDList"  resultMap="playInfoVO">  
+    	select * from fun_video_play where  video_id in
+        <foreach item="item" index="index" collection="list" open="(" separator="," close=")">  
+			#{item}  
+	    </foreach>  
+    </select>  
+
+    <!-- 这里的id必须和UserMapper接口中的接口方法名相同，不然运行的时候也要报错 --> 
+    <select id="getInfoByPlayIDList"  resultMap="playInfoVO"> 
+         select * from fun_video_play where  play_id in   
+         <foreach item="item" index="index" collection="list" open="(" separator="," close=")">  
+		 	#{item}  
+	     </foreach>  
+    </select> 
+    
+     <!-- 返回一个list的写法 -->  
+    <select id="getInfoByHashID"  resultMap="playInfoVO" parameterType="java.lang.String" >  
+        select * from fun_video_play where  info_hash=#{hashID} 
+    </select>  
+    
+     <!-- 返回一个list的写法 -->  
+    <select id="getInfoByHashIDList"  resultMap="playInfoVO">  
+    	select * from fun_video_play where  info_hash in 
+        <foreach item="item" index="index" collection="list" open="(" separator="," close=")">  
+	   		#{item}  
+	    </foreach> 
+    </select>  
+    
+     <!-- 返回一个list的写法 -->  
+    <select id="getInfoByVideoANDHashIDList"  resultMap="playInfoVO" >  
+    	select * from fun_video_play where  video_id in
+      	<foreach item="item" index="index" collection="videoIDs" open="(" separator="," close=")">  
+	   		#{item}  
+	    </foreach>
+       	and info_hash in 
+       	<foreach item="item" index="index" collection="hashIDs" open="(" separator="," close=")">  
+	   		#{item}  
+	    </foreach>  
+    </select>  
+    
+    <insert id="addPlayInfo" useGeneratedKeys="true" keyProperty="playID" parameterType="OpenPlayInfoVO"> 
+    	insert into fun_video_play (video_id,info_hash,file_name,file_size,disable,update_time,create_time,definition_id,ftype_id) 
+        values (#{videoID},#{hashID},#{fileName},#{fileSize},#{disable},#{updateTime},#{createTime},#{definitionID},#{vedioTypeID})
+    </insert> 
+
+	<!--批量新增播放信息 -->
+    <insert id="addPlayInfoList" parameterType="list">  
+		<selectKey keyProperty="playID" order="BEFORE" resultType="java.lang.Integer">  
+	    	select last_insert_id()  
+	    </selectKey>  
+	    insert into fun_video_play (play_id,video_id,info_hash,file_name,file_size,disable,update_time,create_time,definition_id,ftype_id)  values
+	    <foreach collection="list" item="item" index="index" separator="," >  
+	    	(#{item.playID},#{item.videoID},#{item.hashID},#{item.fileName},#{item.fileSize},1,#{item.updateTime},#{item.createTime},#{item.definitionID},#{item.vedioTypeID})
+	    </foreach>  
+    </insert>
+    
+	<!-- 修改播放信息 -->
+    <update id="updatePlayInfo" parameterType="OpenPlayInfoVO">  
+	  	update fun_video_play  set 
+	  	<if test="videoID != null and '' != videoID">  
+            video_id=#{videoID}, 
+        </if> 
+        <if test="hashID != null and '' != hashID">  
+          	info_hash=#{hashID}, 
+        </if>  
+        <if test="fileName != null and '' != fileName">  
+          	file_name=#{fileName},
+        </if>  
+        <if test="fileSize != null and '' != fileSize">  
+        	file_size=#{fileSize},
+        </if>  
+        <if test="disable != null and '' != disable">  
+           	disable=#{disable}, 
+        </if>  
+        <if test="updateTime != null and '' != updateTime">  
+          	update_time=#{updateTime},
+        </if>  
+        <if test="createTime != null and '' != createTime">  
+          	create_time=#{createTime},
+        </if>  
+        <if test="definitionID != null and '' != definitionID">  
+          	definition_id=#{definitionID},
+        </if>  
+        <if test="vedioTypeID != null and '' != vedioTypeID">  
+          	ftype_id=#{vedioTypeID},
+        </if>  
+	  		play_id=#{playID} where play_id=#{playID}
+    </update>
+    
+	<!--批量修改播放信息 -->
+    <update id="updatePlayInfos" parameterType="java.util.List">  
+	    <foreach collection="list" item="item" index="index" separator="," >  
+			update fun_video_play set definition_id=#{item.definitionID} where play_id=#{item.playID}
+	    </foreach>  
+    </update>
+    
+</mapper> 

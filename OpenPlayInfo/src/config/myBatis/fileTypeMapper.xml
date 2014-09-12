@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper 
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.fun.playinfo.mybatis.dao.IFileTypeDao"> 
+	<!--配置一个resultMap 指定返回的类型 -->  
+    <resultMap id="fileTypeVO" type="FileTypeVO">  
+        <id column="ftype_id" property="fileTypeID" />  
+        <result column="code" property="fileCode" />  
+        <result column="name" property="fileName" />  
+    </resultMap> 
+    
+    <!--新增文件类型信息 -->
+    <insert id="addFileType" useGeneratedKeys="true" keyProperty="fileTypeID" parameterType="FileTypeVO"> 
+    	insert into fun_file_type (code,name) values (#{fileCode},#{fileName})
+    </insert> 
+
+	<!--批量新增文件类型信息 -->
+    <insert id="addFileTypeList" >  
+    	insert into fun_file_type (code,name) values
+	    <foreach collection="list" item="item" index="index" separator="," >  
+			 (#{item.fileCode},#{item.fileName})   
+	    </foreach>  
+    </insert>
+    
+	<!-- 修改文件类型信息 -->
+    <update id="updateFileType" parameterType="FileTypeVO">  
+	  	update fun_file_type set 
+	  		<if test="fileCode != null and '' != fileCode">  
+	            code=#{fileCode},  
+	        </if> 
+	        <if test="fileName != null and '' != fileName">  
+	           code=#{fileName},  
+	        </if>  
+	        ftype_id=#{fileTypeID} where ftype_id=#{fileTypeID}
+    </update>
+    
+	<!--批量修改文件类型信息 -->
+    <update id="updateFileTypes" parameterType="java.util.List">  
+	    <foreach collection="list" item="item" index="index" separator="," >  
+		   update fun_file_type set code=#{item.fileCode},name=#{item.fileName} where ftype_id=#{item.fileTypeID}
+	    </foreach>  
+    </update>
+	
+</mapper> 
