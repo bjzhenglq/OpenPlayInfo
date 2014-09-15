@@ -1,11 +1,13 @@
 package com.fun.playinfo.mybatis.dao.impl;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
 
+import com.fun.mybatis.dao.BaseDao;
 import com.fun.playinfo.mybatis.dao.IPlayInfoDao;
 import com.fun.playinfo.thrift.DefinitionVO;
 import com.fun.playinfo.thrift.FileTypeVO;
@@ -32,7 +34,7 @@ public class PlayInfoDaoImpl extends BaseDao implements IPlayInfoDao {
 		List<OpenPlayInfoVO> playInfoList = null;
 		SqlSession session = null;
 		try {
-			session = sessionFactory.openSession(ExecutorType.BATCH);
+			session = getSessionFactory(false).openSession(ExecutorType.BATCH);
 			IPlayInfoDao dao = session.getMapper(IPlayInfoDao.class);
 			playInfoList = dao.getInfoByVideoID(videoID);
 		} finally {
@@ -54,7 +56,7 @@ public class PlayInfoDaoImpl extends BaseDao implements IPlayInfoDao {
 		List<OpenPlayInfoVO> playInfoList = null;
 		SqlSession session = null;
 		try {
-			session = sessionFactory.openSession(ExecutorType.BATCH);
+			session = getSessionFactory(false).openSession(ExecutorType.BATCH);
 			IPlayInfoDao dao = session.getMapper(IPlayInfoDao.class);
 			playInfoList = dao.getInfoByVideoIDList(videoIDs);
 		} finally {
@@ -76,7 +78,7 @@ public class PlayInfoDaoImpl extends BaseDao implements IPlayInfoDao {
 		List<OpenPlayInfoVO> playInfoList = null;
 		SqlSession session = null;
 		try {
-			session = sessionFactory.openSession(ExecutorType.BATCH);
+			session = getSessionFactory(false).openSession(ExecutorType.BATCH);
 			IPlayInfoDao dao = session.getMapper(IPlayInfoDao.class);
 			playInfoList = dao.getInfoByPlayIDList(playIDs);
 		} finally {
@@ -97,7 +99,7 @@ public class PlayInfoDaoImpl extends BaseDao implements IPlayInfoDao {
 		List<OpenPlayInfoVO> playInfoList = null;
 		SqlSession session = null;
 		try {
-			session = sessionFactory.openSession(ExecutorType.BATCH);
+			session = getSessionFactory(false).openSession(ExecutorType.BATCH);
 			IPlayInfoDao dao = session.getMapper(IPlayInfoDao.class);
 			playInfoList = dao.getInfoByHashID(hashID);
 		} finally {
@@ -119,7 +121,7 @@ public class PlayInfoDaoImpl extends BaseDao implements IPlayInfoDao {
 		List<OpenPlayInfoVO> playInfoList = null;
 		SqlSession session = null;
 		try {
-			session = sessionFactory.openSession(ExecutorType.BATCH);
+			session = getSessionFactory(false).openSession(ExecutorType.BATCH);
 			IPlayInfoDao dao = session.getMapper(IPlayInfoDao.class);
 			playInfoList = dao.getInfoByHashIDList(hashIDs);
 		} finally {
@@ -141,7 +143,7 @@ public class PlayInfoDaoImpl extends BaseDao implements IPlayInfoDao {
 		List<OpenPlayInfoVO> playInfoList = null;
 		SqlSession session = null;
 		try {
-			session = sessionFactory.openSession(ExecutorType.BATCH);
+			session = getSessionFactory(false).openSession(ExecutorType.BATCH);
 			IPlayInfoDao dao = session.getMapper(IPlayInfoDao.class);
 			playInfoList = dao.getInfoByVideoANDHashIDList(infoMap);
 		} finally {
@@ -162,7 +164,7 @@ public class PlayInfoDaoImpl extends BaseDao implements IPlayInfoDao {
 		DefinitionVO definition = null;
 		SqlSession session = null;
 		try {
-			session = sessionFactory.openSession(ExecutorType.BATCH);
+			session = getSessionFactory(false).openSession(ExecutorType.BATCH);
 			IPlayInfoDao dao = session.getMapper(IPlayInfoDao.class);
 			definition = dao.getDefinitionByID(definitionID);
 		} finally {
@@ -183,7 +185,7 @@ public class PlayInfoDaoImpl extends BaseDao implements IPlayInfoDao {
 		FileTypeVO fileTypeVO = null;
 		SqlSession session = null;
 		try {
-			session = sessionFactory.openSession(ExecutorType.BATCH);
+			session = getSessionFactory(false).openSession(ExecutorType.BATCH);
 			IPlayInfoDao dao = session.getMapper(IPlayInfoDao.class);
 			fileTypeVO = dao.getFileTypeByID(fileTypeID);
 		} finally {
@@ -203,7 +205,7 @@ public class PlayInfoDaoImpl extends BaseDao implements IPlayInfoDao {
 	public void addPlayInfo(OpenPlayInfoVO playInfoVO) throws Exception {
 		SqlSession session = null;
 		try {
-			session = sessionFactory.openSession(ExecutorType.BATCH);
+			session = getSessionFactory(true).openSession(ExecutorType.BATCH);
 			IPlayInfoDao dao = session.getMapper(IPlayInfoDao.class);
 			dao.addPlayInfo(playInfoVO);
 			session.commit();
@@ -224,7 +226,7 @@ public class PlayInfoDaoImpl extends BaseDao implements IPlayInfoDao {
 			throws Exception {
 		SqlSession session = null;
 		try {
-			session = sessionFactory.openSession(ExecutorType.BATCH);
+			session = getSessionFactory(true).openSession(ExecutorType.BATCH);
 			IPlayInfoDao dao = session.getMapper(IPlayInfoDao.class);
 			dao.addPlayInfoList(playInfoList);
 			session.commit();
@@ -245,7 +247,7 @@ public class PlayInfoDaoImpl extends BaseDao implements IPlayInfoDao {
 	public void updatePlayInfo(OpenPlayInfoVO playInfo) throws Exception {
 		SqlSession session = null;
 		try {
-			session = sessionFactory.openSession();
+			session = getSessionFactory(true).openSession();
 			IPlayInfoDao dao = session.getMapper(IPlayInfoDao.class);
 			playInfo.setUpdateTime((int) (System.currentTimeMillis() / 1000));
 			dao.updatePlayInfo(playInfo);
@@ -266,7 +268,7 @@ public class PlayInfoDaoImpl extends BaseDao implements IPlayInfoDao {
 	public void updatePlayInfos(List<OpenPlayInfoVO> params) throws Exception {
 		SqlSession session = null;
 		try {
-			session = sessionFactory.openSession(ExecutorType.BATCH);
+			session = getSessionFactory(true).openSession(ExecutorType.BATCH);
 			IPlayInfoDao dao = session.getMapper(IPlayInfoDao.class);
 			for (OpenPlayInfoVO openPlayInfoVO : params) {
 				dao.updatePlayInfo(openPlayInfoVO);
@@ -288,7 +290,7 @@ public class PlayInfoDaoImpl extends BaseDao implements IPlayInfoDao {
 	public void delPlayInfoByVedioID(String vedioID) throws Exception {
 		SqlSession session = null;
 		try {
-			session = sessionFactory.openSession(ExecutorType.BATCH);
+			session = getSessionFactory(true).openSession(ExecutorType.BATCH);
 			IPlayInfoDao dao = session.getMapper(IPlayInfoDao.class);
 			dao.delPlayInfoByVedioID(vedioID);
 			session.commit();
@@ -319,7 +321,7 @@ public class PlayInfoDaoImpl extends BaseDao implements IPlayInfoDao {
 		List<OpenPlayInfoVO> playInfoList = null;
 		SqlSession session = null;
 		try {
-			session = sessionFactory.openSession(ExecutorType.BATCH);
+			session = getSessionFactory(false).openSession(ExecutorType.BATCH);
 			IPlayInfoDao dao = session.getMapper(IPlayInfoDao.class);
 			playInfoList = dao.getPlayInfoByPageInfo(curPage, pageSize);
 		} finally {
@@ -343,7 +345,7 @@ public class PlayInfoDaoImpl extends BaseDao implements IPlayInfoDao {
 		List<OpenPlayInfoVO> playInfoList = null;
 		SqlSession session = null;
 		try {
-			session = sessionFactory.openSession(ExecutorType.BATCH);
+			session = getSessionFactory(false).openSession(ExecutorType.BATCH);
 			IPlayInfoDao dao = session.getMapper(IPlayInfoDao.class);
 			playInfoList = dao.getPlayInfoByUptime(lastUpdateTime);
 		} finally {
@@ -365,7 +367,7 @@ public class PlayInfoDaoImpl extends BaseDao implements IPlayInfoDao {
 		int totalRow = 0;
 		SqlSession session = null;
 		try {
-			session = sessionFactory.openSession(ExecutorType.BATCH);
+			session = getSessionFactory(false).openSession(ExecutorType.BATCH);
 			IPlayInfoDao dao = session.getMapper(IPlayInfoDao.class);
 			totalRow = dao.getPlayInfoTotalNum();
 		} finally {
@@ -374,6 +376,13 @@ public class PlayInfoDaoImpl extends BaseDao implements IPlayInfoDao {
 			}
 		}
 		return totalRow;
+
+	}
+
+	@Override
+	public void close() throws IOException {
+
+		// TODO Auto-generated method stub
 
 	}
 

@@ -38,7 +38,7 @@ public class OpenPlayQryTestCase extends BaseTestCase {
 		hashIDs.add("84ee07ff14e2d6b02d517b0c2d8152172baadbe0");
 		hashIDs.add("1B7D9765976475C642788A79A9A6E91072F38197");
 		playIDs = new ArrayList<Integer>();
-		playIDs.add(1508047);
+		playIDs.add(1508076);
 		playIDs.add(1508045);
 	}
 

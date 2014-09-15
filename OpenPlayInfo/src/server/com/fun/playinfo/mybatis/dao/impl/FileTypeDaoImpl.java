@@ -1,11 +1,13 @@
 package com.fun.playinfo.mybatis.dao.impl;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.thrift.TException;
 
+import com.fun.mybatis.dao.BaseDao;
 import com.fun.playinfo.mybatis.dao.IFileTypeDao;
 import com.fun.playinfo.thrift.FileTypeVO;
 
@@ -31,7 +33,7 @@ public class FileTypeDaoImpl extends BaseDao implements IFileTypeDao {
 	public void addFileType(FileTypeVO fileTypeVO) throws TException {
 		SqlSession session = null;
 		try {
-			session = sessionFactory.openSession(ExecutorType.BATCH);
+			session = getSessionFactory(true).openSession(ExecutorType.BATCH);
 			IFileTypeDao dao = session.getMapper(IFileTypeDao.class);
 			dao.addFileType(fileTypeVO);
 			session.commit();
@@ -52,7 +54,7 @@ public class FileTypeDaoImpl extends BaseDao implements IFileTypeDao {
 			throws TException {
 		SqlSession session = null;
 		try {
-			session = sessionFactory.openSession(ExecutorType.BATCH);
+			session = getSessionFactory(true).openSession(ExecutorType.BATCH);
 			IFileTypeDao dao = session.getMapper(IFileTypeDao.class);
 			dao.addFileTypeList(fileTypeList);
 			session.commit();
@@ -73,7 +75,7 @@ public class FileTypeDaoImpl extends BaseDao implements IFileTypeDao {
 	public void updateFileType(FileTypeVO fileType) throws TException {
 		SqlSession session = null;
 		try {
-			session = sessionFactory.openSession(ExecutorType.BATCH);
+			session = getSessionFactory(true).openSession(ExecutorType.BATCH);
 			IFileTypeDao dao = session.getMapper(IFileTypeDao.class);
 			dao.updateFileType(fileType);
 			session.commit();
@@ -93,7 +95,7 @@ public class FileTypeDaoImpl extends BaseDao implements IFileTypeDao {
 	public void updateFileTypes(List<FileTypeVO> fileTypes) throws TException {
 		SqlSession session = null;
 		try {
-			session = sessionFactory.openSession(ExecutorType.BATCH);
+			session = getSessionFactory(true).openSession(ExecutorType.BATCH);
 			IFileTypeDao dao = session.getMapper(IFileTypeDao.class);
 			dao.updateFileTypes(fileTypes);
 			session.commit();
@@ -102,6 +104,13 @@ public class FileTypeDaoImpl extends BaseDao implements IFileTypeDao {
 				session.close();
 			}
 		}
+	}
+
+	@Override
+	public void close() throws IOException {
+
+		// TODO Auto-generated method stub
+
 	}
 
 }

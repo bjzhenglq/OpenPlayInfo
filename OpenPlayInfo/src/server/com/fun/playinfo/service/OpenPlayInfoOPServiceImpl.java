@@ -1,6 +1,5 @@
 package com.fun.playinfo.service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.thrift.TException;
@@ -56,10 +55,7 @@ public class OpenPlayInfoOPServiceImpl implements Iface {
 				if (playInfoList != null && playInfoList.size() > 0) {
 					dao.addPlayInfoList(playInfoList);
 				}
-				for (OpenPlayInfoVO openPlayInfoVO : playInfoList) {
-					dao.addPlayInfo(openPlayInfoVO);
-				}
-				handler.update2Memory(playInfoList);
+				handler.updateMemory();
 			}
 		} catch (Exception e) {
 			result.retCode = 500;
@@ -95,16 +91,11 @@ public class OpenPlayInfoOPServiceImpl implements Iface {
 		try {
 			if (playInfoList != null && playInfoList.size() > 0) {
 				IPlayInfoDao dao = new PlayInfoDaoImpl();
-				List<Integer> playIDs = new ArrayList<Integer>();
 				for (OpenPlayInfoVO openPlayInfoVO : playInfoList) {
 					dao.updatePlayInfo(openPlayInfoVO);
-					playIDs.add(openPlayInfoVO.getPlayID());
 				}
-				// 再查一次，因为更新数据是部分字段，因此无法确定更新那些数据，或者处理非常麻烦，
-				// 由于修改数据不多，因此直接从数据库中重新查一次再更新内存
-				playInfoList = dao.getInfoByPlayIDList(playIDs);
 				// 将变更过的数据刷到内存中
-				handler.update2Memory(playInfoList);
+				handler.updateMemory();
 			}
 		} catch (Exception e) {
 			result.retCode = 500;

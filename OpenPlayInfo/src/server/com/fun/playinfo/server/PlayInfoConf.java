@@ -19,6 +19,7 @@ public class PlayInfoConf {
 	public String localName;
 
 	// 扫描库表的间隔时间
+	public int fullUpdateInterval;
 	public int updateInterval;
 	// 触发全量更新的最小的变动mediaid数
 	public int fullUpdateThrottle;
@@ -47,6 +48,7 @@ public class PlayInfoConf {
 		localName = cr.getValue("local_name");
 
 		updateInterval = cr.getInt("update_interval", 20);
+		fullUpdateInterval = cr.getInt("full_update_interval", 60);
 		fullUpdateThrottle = cr.getInt("full_update_throttle", 2000);
 
 		String fullUpdateTimesStr = cr.getValue("full_update_time", "04:10");

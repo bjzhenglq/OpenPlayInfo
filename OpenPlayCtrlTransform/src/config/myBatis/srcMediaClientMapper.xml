@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper 
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.fun.playctrl.mapper.SrcMediaClientMapper"> 
+	<!--配置一个resultMap 指定返回的类型 -->  
+    <resultMap id="mediaCientVO" type="MediaClientVO">  
+        <result column="mediaid" property="mediaID" />  
+        <result column="tactic" property="isPlay" />  
+        <result column="client" property="client" />  
+        <result column="isdisplay" property="isDisPlay" />  
+        <result column="update_time" property="updateTime" />  
+        <result column="publish_time" property="createTime" />  
+    </resultMap> 
+    
+	<!--新增清晰度定义信息 -->
+    <select id="selectMediaClient" resultMap="mediaCientVO"> 
+    	select * from fs_media_client  where client!='' order by mediaid ,client limit #{0},#{1}
+    </select> 
+</mapper> 

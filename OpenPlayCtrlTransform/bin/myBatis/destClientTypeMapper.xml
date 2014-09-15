@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper 
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.fun.playctrl.mapper.DestClientTypeMapper"> 
+	<!--配置一个resultMap 指定返回的类型 -->  
+    <resultMap id="clientTypeVO" type="ClientTypeVO">  
+        <result column="client_type_id" property="clientTypeID" />  
+        <result column="client_type_name" property="clientTypeName" />  
+    </resultMap> 
+    
+	<!--新增清晰度定义信息 -->
+    <insert id="insertClientType"  parameterType="ClientTypeVO"> 
+    	insert into fun_client_type (client_type_id,client_type_name) values (#{clientTypeID},#{clientTypeName})
+    </insert> 
+</mapper> 

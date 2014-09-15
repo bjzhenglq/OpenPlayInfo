@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper 
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.fun.playctrl.mapper.DestAreaTypeMapper"> 
+	<!--配置一个resultMap 指定返回的类型 -->  
+    <resultMap id="areaTypeVO" type="AreaTypeVO">  
+        <result column="area_type_id" property="areaTypeID" />  
+        <result column="area_type_name" property="areaTypeName" />  
+        <result column="description" property="description" />
+    </resultMap> 
+    
+	<!--新增 -->
+    <insert id="insertAreaType" parameterType="AreaTypeVO"> 
+    	insert into fun_area_type (area_type_id,area_type_name,description) values (#{areaTypeID},#{areaTypeName},#{description})
+    </insert> 
+</mapper> 

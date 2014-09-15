@@ -17,13 +17,15 @@ import com.fun.playinfo.constant.IRPCServiceName;
 import com.fun.playinfo.service.OpenPlayInfoOPServiceImpl;
 import com.fun.playinfo.service.OpenPlayInfoServiceImpl;
 import com.fun.playinfo.service.PlayInfoHandler;
+import com.fun.playinfo.thread.FullUpdateThread;
+import com.fun.playinfo.thread.UpdateThread;
 import com.fun.playinfo.thrift.OpenPlayInfoOpService;
 import com.fun.playinfo.thrift.OpenPlayInfoService;
 import com.fun.playinfo.utils.CCHandler;
 import com.fun.playinfo.utils.LogHelper;
 import com.funshion.configcenter.ConfigCenter;
 
-public class ThriftServer extends Thread {
+public class ThriftServer {
 	private final String confFile = "conf-dev.conf";
 	private final int rpcPort;
 	private final int httpPort;
@@ -37,9 +39,9 @@ public class ThriftServer extends Thread {
 
 	private boolean atService = false;
 	private final int updateInterval;
+	private final int fullUpdateInterval;
 	private final PlayInfoHandler handler;
 	private final LogHelper log = new LogHelper("ThriftServer");
-	private int lastUpdteTime = 0;
 
 	public ThriftServer() throws Exception {
 		conf = new PlayInfoConf(confFile);
@@ -49,6 +51,7 @@ public class ThriftServer extends Thread {
 		this.workerNum = conf.workerNum;
 		this.idListMaxLen = conf.idListMaxLen;
 		updateInterval = conf.updateInterval;
+		fullUpdateInterval = conf.fullUpdateInterval;
 		initCounters();
 		handler = PlayInfoHandler.getInstance();
 	}
@@ -78,10 +81,14 @@ public class ThriftServer extends Thread {
 
 	public void startService() throws TTransportException, IOException {
 		// 内存数据初始化
-		handler.initMemoryData();
-		lastUpdteTime = (int) System.currentTimeMillis();
+		handler.initMemory();
 		// 定时更新数据
-		this.start();
+		UpdateThread updateThread = new UpdateThread(handler, updateInterval);
+		updateThread.start();
+		// 全数据更新
+		FullUpdateThread fullThread = new FullUpdateThread(handler,
+				fullUpdateInterval);
+		fullThread.start();
 
 		socket = new TServerSocket(rpcPort, readTimeout);
 		TThreadPoolServer.Args args = new TThreadPoolServer.Args(socket);
@@ -118,37 +125,6 @@ public class ThriftServer extends Thread {
 		atService = false;
 
 		log.error("the open playinfo server has been started");
-	}
-
-	@Override
-	public void run() {
-		while (true) {
-			boolean isFullUpdate = false;
-			try {
-				sleep(updateInterval * 1000);
-				int beginTime = (int) System.currentTimeMillis() / 1000;
-				// 检查是否全量更新时间，必须在sleep之后，否则会判断出错
-				// isFullUpdate = needFullUpdate();
-
-				// if (isFullUpdate) {
-				// log.info("start full updating...");
-				// boolean isFirstLoad = false;
-				// handler.updateDataByUpdateTime(lastUpdteTime);
-				//
-				// // 检查数据库里是否有某个媒体的种子全部被硬删除的情况
-				// // checkAndRemove();
-				// } else {
-
-				handler.updateMemoryData(lastUpdteTime);
-				lastUpdteTime = beginTime;
-				// }
-			} catch (Exception e) {
-				String c = isFullUpdate ? "fullUpdate" : "update";
-				CCHandler.addErr(c);
-				log.error(e, "thread running error: %s", e.getMessage());
-				e.printStackTrace();
-			}
-		}
 	}
 
 	public void close() {

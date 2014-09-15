@@ -20,8 +20,6 @@ import com.fun.playinfo.utils.LogHelper;
 
 /**
  * ClassName:PlayInfoHandler <br/>
- * Function: TODO ADD FUNCTION. <br/>
- * Reason: TODO ADD REASON. <br/>
  * Date: 2014-9-11 下午3:23:29 <br/>
  * 
  * @author zhenglq
@@ -33,17 +31,17 @@ public class PlayInfoHandler {
 
 	private static PlayInfoHandler instance = null;
 	// 视频为key，播放信息为value
-	private final ConcurrentHashMap<Integer, List<OpenPlayInfoVO>> vedioIDMap;
+	private ConcurrentHashMap<Integer, List<OpenPlayInfoVO>> vedioIDMap;
 	// 视频为key，播放信息为value
-	private final ConcurrentHashMap<Integer, OpenPlayInfoVO> playIDMap;
+	private ConcurrentHashMap<Integer, OpenPlayInfoVO> playIDMap;
 	// hashID为key，播放信息为value
-	private final ConcurrentHashMap<String, List<OpenPlayInfoVO>> hashIDMap;
+	private ConcurrentHashMap<String, List<OpenPlayInfoVO>> hashIDMap;
 	// hashID+playID为key，播放信息为value
-	private final ConcurrentHashMap<String, List<OpenPlayInfoVO>> hashVedioIDMap;
+	private ConcurrentHashMap<String, List<OpenPlayInfoVO>> hashVedioIDMap;
 
 	private IPlayInfoDao playInfoDao = null;
-
 	private final int pageSize = 5000;
+	private int maxUpdateTime = 1410518949;
 
 	private LogHelper log = null;
 
@@ -74,9 +72,15 @@ public class PlayInfoHandler {
 		return instance;
 	}
 
-	public void initMemoryData() {
+	/**
+	 * 
+	 * 数据初始化 <br/>
+	 * 
+	 * @author zhenglq
+	 * @since JDK 1.7
+	 */
+	public void initMemory() {
 		int beginNum = 0;
-
 		try {
 			int totalNum = playInfoDao.getPlayInfoTotalNum();
 			totalNum = 100;
@@ -86,38 +90,7 @@ public class PlayInfoHandler {
 						.getPlayInfoByPageInfo(beginNum, pageSize);
 				if (playInfoList != null) {
 					for (OpenPlayInfoVO openPlayInfoVO : playInfoList) {
-						// 初始化vedioMap
-						int vedioID = openPlayInfoVO.getVideoID();
-						List<OpenPlayInfoVO> vedioList = vedioIDMap
-								.get(vedioID);
-						if (vedioList == null) {
-							vedioList = new ArrayList<OpenPlayInfoVO>();
-						}
-						vedioList.add(openPlayInfoVO);
-						vedioIDMap.put(vedioID, vedioList);
-
-						// 初始化playIDMap
-						playIDMap.put(openPlayInfoVO.getPlayID(),
-								openPlayInfoVO);
-
-						// 初始化hashIDMap
-						String hashID = openPlayInfoVO.getHashID();
-						List<OpenPlayInfoVO> hashList = hashIDMap.get(hashID);
-						if (hashList == null) {
-							hashList = new ArrayList<OpenPlayInfoVO>();
-						}
-						hashList.add(openPlayInfoVO);
-						hashIDMap.put(hashID, hashList);
-
-						// 初始化hashVedioIDMap
-						String hashVedioKey = hashID + "_" + vedioID;
-						List<OpenPlayInfoVO> hashVedioList = hashVedioIDMap
-								.get(hashVedioKey);
-						if (hashVedioList == null) {
-							hashVedioList = new ArrayList<OpenPlayInfoVO>();
-						}
-						hashVedioList.add(openPlayInfoVO);
-						hashVedioIDMap.put(hashVedioKey, hashVedioList);
+						initMemoryData(openPlayInfoVO);
 					}
 				}
 			}
@@ -131,64 +104,166 @@ public class PlayInfoHandler {
 		} catch (Exception e) {
 			log.equals(e);
 		} finally {
+
 		}
 	}
 
 	/**
-	 * 定时从数据库中刷新数据，更新内存 <br/>
+	 * 更新数据库最新数据至内存 <br/>
 	 * 
-	 * @param lastUpdteTime
 	 * @author zhenglq
 	 * @since JDK 1.7
 	 */
-	public void updateMemoryData(int lastUpdteTime) {
+	public void updateMemory() {
 		try {
-			List<OpenPlayInfoVO> uptList = playInfoDao
-					.getPlayInfoByUptime(lastUpdteTime);
-			if (uptList != null && uptList.size() > 0) {
-				update2Memory(uptList);
+			log.error(
+					"begin update memory data,the maxUpdateTime is %d........",
+					maxUpdateTime);
+			// 根据上次时间戳，获取所有变更数据
+			List<OpenPlayInfoVO> playInfoList = playInfoDao
+					.getPlayInfoByUptime(maxUpdateTime);
+			if (playInfoList != null && playInfoList.size() > 0) {
+				log.error(playInfoList.toString());
+				// 数据刷入内存
+				updateMemoryData(playInfoList);
 			}
 		} catch (Exception e) {
-
+			log.error("update memory data failed,the timestamp is %d",
+					maxUpdateTime);
+			log.error(e.getMessage(), e);
 		}
 	}
 
 	/**
-	 * 从内存中删除数据 <br/>
+	 * 内存全更新数据 <br/>
 	 * 
-	 * @param uptList
 	 * @author zhenglq
 	 * @since JDK 1.7
 	 */
-	public void deleteFromMemory(List<OpenPlayInfoVO> uptList) {
-		for (OpenPlayInfoVO openPlayInfoVO : uptList) {
-			int vedioID = openPlayInfoVO.getVideoID();
-			List<OpenPlayInfoVO> vedioPlayInfoList = vedioIDMap.get(vedioID);
-			if (vedioPlayInfoList != null) {
-				vedioPlayInfoList.remove(openPlayInfoVO);
-				vedioIDMap.put(vedioID, vedioPlayInfoList);
+	public void fullUpdateMemory() {
+		int beginNum = 0;
+		Runtime currRuntime = Runtime.getRuntime();
+		try {
+			int nTotalMemory = (int) (currRuntime.totalMemory() / 1024 / 1024);
+			int totalNum = playInfoDao.getPlayInfoTotalNum();
+			int tempMaxUpdateTime = 0;
+			// 将数据暂时放在临时变量中，当数据整理完成后，再复制给原有变量，
+			ConcurrentHashMap<Integer, List<OpenPlayInfoVO>> tempVedioIDMap = new ConcurrentHashMap<Integer, List<OpenPlayInfoVO>>();
+			ConcurrentHashMap<Integer, OpenPlayInfoVO> tempPlayIDMap = new ConcurrentHashMap<Integer, OpenPlayInfoVO>();
+			ConcurrentHashMap<String, List<OpenPlayInfoVO>> tempHashVedioIDMap = new ConcurrentHashMap<String, List<OpenPlayInfoVO>>();
+			ConcurrentHashMap<String, List<OpenPlayInfoVO>> tempHashIDMap = new ConcurrentHashMap<String, List<OpenPlayInfoVO>>();
+			totalNum = 100;
+			for (int curPage = 0; curPage <= totalNum / pageSize; curPage++) {
+				beginNum = curPage * pageSize;
+				List<OpenPlayInfoVO> playInfoList = playInfoDao
+						.getPlayInfoByPageInfo(beginNum, pageSize);
+				if (playInfoList != null) {
+					for (OpenPlayInfoVO openPlayInfoVO : playInfoList) {
+						tempMaxUpdateTime = fullUpdateMemoryData(
+								openPlayInfoVO, tempMaxUpdateTime,
+								tempVedioIDMap, tempPlayIDMap, tempHashIDMap,
+								tempHashVedioIDMap);
+					}
+				}
 			}
+			log.debug("total full Update data number is %d", totalNum);
+			int nFreeMemory = (int) (currRuntime.freeMemory() / 1024 / 1024);
+			log.info(
+					"total memory is %d,free memory is %d,and used memory is %d",
+					nTotalMemory, nFreeMemory, nTotalMemory - nFreeMemory);
 
-			int playID = openPlayInfoVO.getPlayID();
-			playIDMap.remove(playID);
-
-			String hashID = openPlayInfoVO.getHashID();
-			List<OpenPlayInfoVO> hashPlayInfoList = hashIDMap.get(hashID);
-			// 如果是新增加的vedio信息，则直接添加
-			if (hashPlayInfoList != null) {
-				hashPlayInfoList.remove(openPlayInfoVO);
-				hashIDMap.put(hashID, hashPlayInfoList);
+			if (tempMaxUpdateTime > maxUpdateTime) {
+				maxUpdateTime = tempMaxUpdateTime;
 			}
+			vedioIDMap = tempVedioIDMap;
+			playIDMap = tempPlayIDMap;
+			hashIDMap = tempHashIDMap;
+			hashVedioIDMap = tempHashVedioIDMap;
 
-			String hashVedioKey = hashID + "_" + vedioID;
-			List<OpenPlayInfoVO> hashVedioPlayInfoList = hashVedioIDMap
-					.get(hashVedioKey);
-			// 如果是新增加的vedio信息，则直接添加
-			if (hashVedioPlayInfoList != null) {
-				hashVedioPlayInfoList.remove(openPlayInfoVO);
-				hashVedioIDMap.put(hashVedioKey, hashVedioPlayInfoList);
-			}
+		} catch (Exception e) {
+			log.error("full Update Memory data failed,the timestamp is %d",
+					maxUpdateTime);
+			log.error(e.getMessage(), e);
 		}
+	}
+
+	private int fullUpdateMemoryData(OpenPlayInfoVO openPlayInfoVO,
+			int tempMaxUpdateTime,
+			ConcurrentHashMap<Integer, List<OpenPlayInfoVO>> tempVedioIDMap,
+			ConcurrentHashMap<Integer, OpenPlayInfoVO> tempPlayIDMap,
+			ConcurrentHashMap<String, List<OpenPlayInfoVO>> tempHashIDMap,
+			ConcurrentHashMap<String, List<OpenPlayInfoVO>> tempHashVedioIDMap) {
+		// 记录数据中修改时间最大的时间戳
+		if (tempMaxUpdateTime < openPlayInfoVO.getUpdateTime()) {
+			tempMaxUpdateTime = openPlayInfoVO.getUpdateTime();
+		}
+		// 初始化vedioMap
+		int vedioID = openPlayInfoVO.getVideoID();
+		List<OpenPlayInfoVO> vedioList = tempVedioIDMap.get(vedioID);
+		if (vedioList == null) {
+			vedioList = new ArrayList<OpenPlayInfoVO>();
+		}
+		vedioList.add(openPlayInfoVO);
+		tempVedioIDMap.put(vedioID, vedioList);
+
+		// 初始化playIDMap
+		tempPlayIDMap.put(openPlayInfoVO.getPlayID(), openPlayInfoVO);
+
+		// 初始化hashIDMap
+		String hashID = openPlayInfoVO.getHashID();
+		List<OpenPlayInfoVO> hashList = tempHashIDMap.get(hashID);
+		if (hashList == null) {
+			hashList = new ArrayList<OpenPlayInfoVO>();
+		}
+		hashList.add(openPlayInfoVO);
+		tempHashIDMap.put(hashID, hashList);
+
+		// 初始化hashVedioIDMap
+		String hashVedioKey = hashID + "_" + vedioID;
+		List<OpenPlayInfoVO> hashVedioList = tempHashVedioIDMap
+				.get(hashVedioKey);
+		if (hashVedioList == null) {
+			hashVedioList = new ArrayList<OpenPlayInfoVO>();
+		}
+		hashVedioList.add(openPlayInfoVO);
+		tempHashVedioIDMap.put(hashVedioKey, hashVedioList);
+		return tempMaxUpdateTime;
+	}
+
+	private void initMemoryData(OpenPlayInfoVO openPlayInfoVO) {
+		// 记录数据中修改时间最大的时间戳
+		if (maxUpdateTime < openPlayInfoVO.getUpdateTime()) {
+			maxUpdateTime = openPlayInfoVO.getUpdateTime();
+		}
+		// 初始化vedioMap
+		int vedioID = openPlayInfoVO.getVideoID();
+		List<OpenPlayInfoVO> vedioList = vedioIDMap.get(vedioID);
+		if (vedioList == null) {
+			vedioList = new ArrayList<OpenPlayInfoVO>();
+		}
+		vedioList.add(openPlayInfoVO);
+		vedioIDMap.put(vedioID, vedioList);
+
+		// 初始化playIDMap
+		playIDMap.put(openPlayInfoVO.getPlayID(), openPlayInfoVO);
+
+		// 初始化hashIDMap
+		String hashID = openPlayInfoVO.getHashID();
+		List<OpenPlayInfoVO> hashList = hashIDMap.get(hashID);
+		if (hashList == null) {
+			hashList = new ArrayList<OpenPlayInfoVO>();
+		}
+		hashList.add(openPlayInfoVO);
+		hashIDMap.put(hashID, hashList);
+
+		// 初始化hashVedioIDMap
+		String hashVedioKey = hashID + "_" + vedioID;
+		List<OpenPlayInfoVO> hashVedioList = hashVedioIDMap.get(hashVedioKey);
+		if (hashVedioList == null) {
+			hashVedioList = new ArrayList<OpenPlayInfoVO>();
+		}
+		hashVedioList.add(openPlayInfoVO);
+		hashVedioIDMap.put(hashVedioKey, hashVedioList);
 	}
 
 	/**
@@ -198,8 +273,14 @@ public class PlayInfoHandler {
 	 * @author zhenglq
 	 * @since JDK 1.7
 	 */
-	public void update2Memory(List<OpenPlayInfoVO> uptList) {
+	private void updateMemoryData(List<OpenPlayInfoVO> uptList) {
 		for (OpenPlayInfoVO openPlayInfoVO : uptList) {
+
+			// 记录数据中修改时间最大的时间戳
+			if (maxUpdateTime < openPlayInfoVO.getUpdateTime()) {
+				maxUpdateTime = openPlayInfoVO.getUpdateTime();
+			}
+
 			int vedioID = openPlayInfoVO.getVideoID();
 			List<OpenPlayInfoVO> vedioPlayInfoList = vedioIDMap.get(vedioID);
 			// 如果是新增加的vedio信息，则直接添加
@@ -245,6 +326,44 @@ public class PlayInfoHandler {
 			}
 			hashVedioPlayInfoList.add(openPlayInfoVO);
 			hashVedioIDMap.put(hashVedioKey, hashVedioPlayInfoList);
+		}
+	}
+
+	/**
+	 * 从内存中删除数据 <br/>
+	 * 
+	 * @param uptList
+	 * @author zhenglq
+	 * @since JDK 1.7
+	 */
+	public void deleteFromMemory(List<OpenPlayInfoVO> uptList) {
+		for (OpenPlayInfoVO openPlayInfoVO : uptList) {
+			int vedioID = openPlayInfoVO.getVideoID();
+			List<OpenPlayInfoVO> vedioPlayInfoList = vedioIDMap.get(vedioID);
+			if (vedioPlayInfoList != null) {
+				vedioPlayInfoList.remove(openPlayInfoVO);
+				vedioIDMap.put(vedioID, vedioPlayInfoList);
+			}
+
+			int playID = openPlayInfoVO.getPlayID();
+			playIDMap.remove(playID);
+
+			String hashID = openPlayInfoVO.getHashID();
+			List<OpenPlayInfoVO> hashPlayInfoList = hashIDMap.get(hashID);
+			// 如果是新增加的vedio信息，则直接添加
+			if (hashPlayInfoList != null) {
+				hashPlayInfoList.remove(openPlayInfoVO);
+				hashIDMap.put(hashID, hashPlayInfoList);
+			}
+
+			String hashVedioKey = hashID + "_" + vedioID;
+			List<OpenPlayInfoVO> hashVedioPlayInfoList = hashVedioIDMap
+					.get(hashVedioKey);
+			// 如果是新增加的vedio信息，则直接添加
+			if (hashVedioPlayInfoList != null) {
+				hashVedioPlayInfoList.remove(openPlayInfoVO);
+				hashVedioIDMap.put(hashVedioKey, hashVedioPlayInfoList);
+			}
 		}
 	}
 

@@ -64,8 +64,6 @@ public class OpenPlayOPTestCase extends BaseTestCase {
 			playInfoVO.setDefinitionID(1);
 			playInfoVO.setFileSize(200000);
 			playInfoVO.setVedioTypeID(10);
-			playInfoVO.setCreateTime((int) (System.currentTimeMillis() / 1000));
-			playInfoVO.setUpdateTime((int) (System.currentTimeMillis() / 1000));
 			playInfoVO.setFileName("测试问题件");
 			playInfoVOs.add(playInfoVO);
 			playInfoVO = new OpenPlayInfoVO();
@@ -74,8 +72,6 @@ public class OpenPlayOPTestCase extends BaseTestCase {
 			playInfoVO.setDefinitionID(2);
 			playInfoVO.setFileSize(200000);
 			playInfoVO.setVedioTypeID(10);
-			playInfoVO.setCreateTime((int) (System.currentTimeMillis() / 1000));
-			playInfoVO.setUpdateTime((int) (System.currentTimeMillis() / 1000));
 			playInfoVO.setFileName("风行");
 			playInfoVOs.add(playInfoVO);
 			//
@@ -99,11 +95,9 @@ public class OpenPlayOPTestCase extends BaseTestCase {
 			List<OpenPlayInfoVO> playInfoVOs = new ArrayList<OpenPlayInfoVO>();
 			OpenPlayInfoVO playInfoVO = new OpenPlayInfoVO();
 			playInfoVO.setPlayID(59);
-			playInfoVO.setDefinitionID(150);
 			playInfoVOs.add(playInfoVO);
 			playInfoVO = new OpenPlayInfoVO();
 			playInfoVO.setPlayID(60);
-			playInfoVO.setVedioTypeID(120);
 			playInfoVOs.add(playInfoVO);
 			//
 			PlayInfoOPResult playInfoResult = client

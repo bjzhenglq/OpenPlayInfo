@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper 
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.fun.playctrl.mapper.SrcMediaMapper"> 
+	<!--配置一个resultMap 指定返回的类型 -->  
+    <resultMap id="mediaVO" type="MediaVO">  
+        <result column="mediaid" property="mediaID" />  
+        <result column="name_cn" property="nameCN" />  
+    </resultMap> 
+    
+	<!--新增清晰度定义信息 -->
+    <select id="selectMedia"   resultMap="mediaVO"> 
+    	select mediaid,name_cn from fs_media 
+    </select> 
+</mapper> 

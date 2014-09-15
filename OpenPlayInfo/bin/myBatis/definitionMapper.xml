@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper 
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.fun.playinfo.mybatis.dao.IDefinitionDao"> 
+	<!--配置一个resultMap 指定返回的类型 -->  
+    <resultMap id="definitionVO" type="DefinitionVO">  
+        <id column="definition_id" property="definitionID" />  
+        <result column="code" property="defCode" />  
+        <result column="name" property="defName" />  
+    </resultMap> 
+    
+	<!--新增清晰度定义信息 -->
+    <insert id="addDefinition" useGeneratedKeys="true" keyProperty="fileTypeID" parameterType="DefinitionVO"> 
+    	insert into fun_definition_type (code,name) values (#{defCode},#{defName})
+    </insert> 
+
+	<!--批量新增清晰度定义信息-->
+    <insert id="addDefinitionList" >  
+    	insert into fun_definition_type (code,name) values
+	    <foreach collection="list" item="item" index="index" separator="," >  
+			 (#{item.defCode},#{item.defName})   
+	    </foreach>  
+    </insert>
+    
+	<!-- 修改清晰度定义信息 -->
+    <update id="updateDefinition" parameterType="DefinitionVO">  
+	  	update fun_definition_type set 
+	  	<if test="defCode != null and '' != defCode">  
+            code=#{defCode},  
+        </if> 
+        <if test="defName != null and '' != defName">  
+           code=#{defName},  
+        </if>  
+	  	definition_id=#{definitionID} where definition_id=#{definitionID}
+    </update>
+    
+	<!--批量修改清晰度定义信息 -->
+    <update id="updateDefinitions" parameterType="java.util.List">  
+	    <foreach collection="list" item="item" index="index" separator="," >  
+		   update fun_definition_type set code=#{item.defCode},name=#{item.defName} where definition_id=#{item.definitionID}
+	    </foreach>  
+    </update>
+	
+    
+</mapper> 

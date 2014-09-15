@@ -1,11 +1,13 @@
 package com.fun.playinfo.mybatis.dao.impl;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.thrift.TException;
 
+import com.fun.mybatis.dao.BaseDao;
 import com.fun.playinfo.mybatis.dao.IDefinitionDao;
 import com.fun.playinfo.thrift.DefinitionVO;
 
@@ -31,7 +33,7 @@ public class DefinitionDaoImpl extends BaseDao implements IDefinitionDao {
 	public void addDefinition(DefinitionVO definition) throws TException {
 		SqlSession session = null;
 		try {
-			session = sessionFactory.openSession(ExecutorType.BATCH);
+			session = getSessionFactory(true).openSession(ExecutorType.BATCH);
 			IDefinitionDao definitionMapper = session
 					.getMapper(IDefinitionDao.class);
 			definitionMapper.addDefinition(definition);
@@ -53,7 +55,7 @@ public class DefinitionDaoImpl extends BaseDao implements IDefinitionDao {
 			throws TException {
 		SqlSession session = null;
 		try {
-			session = sessionFactory.openSession(ExecutorType.BATCH);
+			session = getSessionFactory(true).openSession(ExecutorType.BATCH);
 			IDefinitionDao definitionMapper = session
 					.getMapper(IDefinitionDao.class);
 			definitionMapper.addDefinitionList(definitionList);
@@ -74,7 +76,7 @@ public class DefinitionDaoImpl extends BaseDao implements IDefinitionDao {
 	public void updateDefinition(DefinitionVO definition) throws TException {
 		SqlSession session = null;
 		try {
-			session = sessionFactory.openSession(ExecutorType.BATCH);
+			session = getSessionFactory(true).openSession(ExecutorType.BATCH);
 			IDefinitionDao definitionMapper = session
 					.getMapper(IDefinitionDao.class);
 			definitionMapper.updateDefinition(definition);
@@ -96,7 +98,7 @@ public class DefinitionDaoImpl extends BaseDao implements IDefinitionDao {
 			throws TException {
 		SqlSession session = null;
 		try {
-			session = sessionFactory.openSession(ExecutorType.BATCH);
+			session = getSessionFactory(true).openSession(ExecutorType.BATCH);
 			IDefinitionDao definitionMapper = session
 					.getMapper(IDefinitionDao.class);
 			definitionMapper.updateDefinitions(definitions);
@@ -106,6 +108,13 @@ public class DefinitionDaoImpl extends BaseDao implements IDefinitionDao {
 				session.close();
 			}
 		}
+	}
+
+	@Override
+	public void close() throws IOException {
+
+		// TODO Auto-generated method stub
+
 	}
 
 }

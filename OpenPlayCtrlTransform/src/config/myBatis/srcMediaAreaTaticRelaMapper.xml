@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper 
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.fun.playctrl.mapper.SrcMediaAreaTaticMapper"> 
+	<!--配置一个resultMap 指定返回的类型 -->  
+    <resultMap id="mediaAreaTaticRelaVO" type="MediaAreaTaticRelaVO">  
+        <result column="mediaid" property="mediaID" />  
+        <result column="tactic" property="tactic" />  
+        <result column="client" property="client" />  
+        <result column="version" property="version" />  
+    </resultMap> 
+    
+	<!--新增清晰度定义信息 -->
+    <select id="selectAreaTaticRela"   resultMap="mediaAreaTaticRelaVO"> 
+    	select * from fs_media_area_tactic_relation where tactic!=0 order by mediaid  ,client limit #{0},#{1}
+    </select> 
+</mapper> 
